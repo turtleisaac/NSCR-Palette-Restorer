@@ -9,7 +9,8 @@ def run():
         if sys.argv[1] == '-h':
             usage()
             print('Make sure that whatever tile you wish to be used as the transparency tile is the FIRST tile (top '
-                  'left corner) in your tilemap')
+                  'left corner) of the source image (NCGR). That is, the first 8x8 chunk in the image is the '
+                  'transparency tile')
             return
 
     if len(sys.argv) != 4:
@@ -33,14 +34,18 @@ def run():
     buffer = Buffer(bytearray(data), write=True)
     buffer.seek_local(36)
 
-    has_read_yet = False
+    transparency_tile = 0xFFFF
+
+    while buffer.pos != len(buffer.data):
+        tile = buffer.read_u16() & 0x3FF
+        if tile < transparency_tile:  # transparency tile is the first tile in the source image (lowest index tile)
+            transparency_tile = tile
+
+    buffer.seek_global(0)
 
     while buffer.pos != len(buffer.data):
         tile = buffer.read_u16()
         buffer.seek_local(-2)
-        if not has_read_yet:
-            has_read_yet = True
-            transparency_tile = tile & 0x3FF
         if tile & 0x3FF != transparency_tile:
             tile |= (palette_num << 12)
         buffer.write_u16(tile)
