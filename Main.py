@@ -41,7 +41,7 @@ def run():
         if tile < transparency_tile:  # transparency tile is the first tile in the source image (lowest index tile)
             transparency_tile = tile
 
-    buffer.seek_global(0)
+    buffer.seek_global(36)
 
     while buffer.pos != len(buffer.data):
         tile = buffer.read_u16()
